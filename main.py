@@ -6,21 +6,19 @@ import math
 
 pygame.font.init()
 
-WIN_SIZE = 1000
-NUMBER_OF_SQUARES = 5
-NUMBER_OF_SQUARES_SQUARED = NUMBER_OF_SQUARES**2
-SQUARE_SIZE = WIN_SIZE//NUMBER_OF_SQUARES
-FONT = pygame.font.SysFont('arial',30)
-FONT_TRAINING = pygame.font.SysFont('arial',90)
+WIN_SIZE = 1000 #definise sirinu i visinu prozora za graficki prikaz
+NUMBER_OF_SQUARES = 6  #definise koliko ce polja igra imati
+NUMBER_OF_SQUARES_SQUARED = NUMBER_OF_SQUARES**2    #racuna povrsinu mape
+SQUARE_SIZE = WIN_SIZE//NUMBER_OF_SQUARES   #racuna koliko je jedno polje u px
 
-BLACK = (255,255,255)
-GREEN = (0,255,0)
-RED = (255,0,0)
+BLACK = (255,255,255) #boja pozadine
+GREEN = (0,255,0)   #boja zmije
+RED = (255,0,0) #boja jabuke
 
-win = pygame.display.set_mode((WIN_SIZE,WIN_SIZE))
-pygame.display.set_caption("Meko Racunarstvo")
+win = pygame.display.set_mode((WIN_SIZE,WIN_SIZE)) #deklarisem prozor
+pygame.display.set_caption("Meko Racunarstvo")  #podesavam title na prozoru
 
-class snake_body:
+class snake_body:   #ova klasa predstavlja jednu tacku tela zmije
     def __init__(self, x, y, moving_side):
         self.x = x
         self.y = y
@@ -30,7 +28,7 @@ class snake_body:
         pygame.draw.rect(win, GREEN, (self.x * size, self.y * size, size, size))
 
 class Snake:
-    def __init__(self,x,y,size):
+    def __init__(self,x,y,size): # pravi zmiju od 3 polja
         self.size = size
         self.x = x
         self.y = y
@@ -40,7 +38,7 @@ class Snake:
         self.array.append(snake_body(x,y-1,'down'))
         self.array.append(snake_body(x, y - 2, 'down'))
 
-    def move(self):
+    def move(self): # pomera zmiju za po jedno polje
         for i in range(len(self.array) - 1, -1, -1):
             if self.array[i].moving_side == 'up':
                 self.array[i].y -= 1
@@ -54,11 +52,11 @@ class Snake:
             if i > 0 and self.array[i - 1].moving_side != self.array[i].moving_side:
                 self.array[i].moving_side = self.array[i - 1].moving_side
 
-    def draw(self,win):
-        for snake_body in reversed(self.array):
+    def draw(self,win): # crta zmiju
+        for snake_body in self.array:
             snake_body.draw_body(self.size)
 
-    def increase(self):
+    def increase(self): # povecava zmiju za jedno polje
         if self.array[-1].moving_side == 'up':
             self.array.append(snake_body(self.array[-1].x,self.array[-1].y+1,self.array[-1].moving_side))
         if self.array[-1].moving_side == 'down':
@@ -68,7 +66,7 @@ class Snake:
         if self.array[-1].moving_side == 'right':
             self.array.append(snake_body(self.array[-1].x-1,self.array[-1].y,self.array[-1].moving_side))
 
-    def check_collision(self,num_of_squares):
+    def check_collision(self,num_of_squares): # proverava da li je zmija udarila u nesto
         if self.head.y>num_of_squares-1 or self.head.x > num_of_squares-1 or self.head.x<0 or self.head.y<0:
             return True
         for body in self.array:
@@ -76,13 +74,14 @@ class Snake:
                 return True
         return False
 
-    def getAngle(self,apple):
+    def getAngle(self,apple): # racuna ugao izmedju glave i jabuke
         angle = math.atan2((self.head.x-apple.x),(self.head.y-apple.y))
         return angle
 
-    def getSideDistance(self,numSquares):
+    def getSideDistance(self,numSquares): # racuna distance
         distance = [0,0,0,0,0,0,0,0] #up,down,left,right,up-right,up-left,down-right,down-left
-        bodyInWay = False
+        
+        bodyInWay = False # racuna distancu iznad glave
         if self.head.moving_side !='down':
             for i in reversed(range(self.head.y)):
                 for body in self.array:
@@ -92,7 +91,8 @@ class Snake:
                     distance[0]+=1
                 else:
                     break
-        bodyInWay = False
+        
+        bodyInWay = False # racuna distancu ispod glave
         if self.head.moving_side != 'up':
             for i in range(self.head.y+1,numSquares):
                 for body in self.array:
@@ -102,7 +102,8 @@ class Snake:
                     distance[1] += 1
                 else:
                     break
-        bodyInWay = False
+        
+        bodyInWay = False # racuna distancu levo od glave
         if self.head.moving_side != 'right':
             for i in reversed(range(self.head.x)):
                 for body in self.array:
@@ -112,7 +113,8 @@ class Snake:
                     distance[2]+=1
                 else:
                     break
-        bodyInWay = False
+        
+        bodyInWay = False # racuna distancu desno od glave
         if self.head.moving_side != 'left':
             for i in range(self.head.x + 1, numSquares):
                 for body in self.array:
@@ -122,8 +124,9 @@ class Snake:
                     distance[3] += 1
                 else:
                     break
+        
         distance[4:]=[1,1,1,1]
-        for body in self.array:
+        for body in self.array: # proverava dijagonale
             #up - left,up-right, down - right, down - left
             if body.x == self.head.x-1 and body.y ==self.head.y-1 or self.head.x -1<0 or self.head.y-1<0:
                 distance[4]=0
@@ -136,22 +139,22 @@ class Snake:
 
         return distance
 
-    def getDistanceFromApple(self,apple):
+    def getDistanceFromApple(self,apple): # racuna distancu do jabuke
         return math.sqrt((apple.x-self.x)**2+(apple.y-self.y)**2)
 
 class Apple:
-    def __init__(self,x,y,size,num_of_squares,snake):
+    def __init__(self,x,y,size,num_of_squares,snake): # definise jabuku
         self.x = x
         self.y = y
         self.size = size
         self.num_of_squares =num_of_squares
         self.snake = snake
 
-    def draw(self,win):
+    def draw(self,win): # crta jabuku
         if len(self.snake.array) < self.num_of_squares ** 2:
             pygame.draw.rect(win, RED, (self.x * self.size, self.y * self.size, self.size, self.size))
 
-    def generate(self):
+    def generate(self): # generise jabuku
         if len(self.snake.array) < self.num_of_squares**2:
             self.x = random.randint(0, self.num_of_squares-1)
             self.y = random.randint(0, self.num_of_squares-1)
@@ -160,13 +163,13 @@ class Apple:
                 if self.x == body.x and self.y == body.y:
                     self.generate()
 
-def draw_window(snake,distance,apple,gen):
+def draw_window(snake,distance,apple,gen): # crta igru
     win.fill(BLACK)
     snake.draw(win)
     apple.draw(win)
     pygame.display.update()
 
-def moving_side_to_int(side):
+def moving_side_to_int(side): # pretvara string u int
     if side == 'up':
         return 0
     if side == 'down':
@@ -176,10 +179,10 @@ def moving_side_to_int(side):
     if side == 'right':
         return 3
 
-def set_move(y, snake):
-    m = -math.inf
-    i=y.index(max(y))
+def set_move(y, snake): # bira potez
+    m=-math.inf
     side = snake.head.moving_side
+
     if y[0]>m and snake.head.moving_side!='down':
         side = 'up'
         m = y[0]
@@ -195,20 +198,20 @@ def set_move(y, snake):
 
     snake.head.moving_side = side
 
-gen = 0
-max_score = 0
-score_gen = 0
-draw_win = False
-normal_speed = False
+gen = 0 # broj generacija
+max_score = 0 # maksimalan skor
+score_gen = 0 # maksimalan skor jedne generacije
+draw_win = False # da li crta igru
+normal_speed = False # da li je igra ubrzana
 
-def run_genomes(genomes, config): 
+def run_genomes(genomes, config):  # ova petlja se odvija za sve generaciju
     global gen,max_score,draw_win,normal_speed,score_gen
-    gen+=1
     print("Generations:",gen," Max-Score:",max_score," Score:",score_gen)
 
+    gen+=1
     score_gen=0
 
-    for id, genome in genomes:
+    for id, genome in genomes: # ova petlja se odvija za svaku generaciju
         num_of_moves = 0
         net =  neat.nn.FeedForwardNetwork.create(genome,config)
         genome.fitness = 0
@@ -219,10 +222,7 @@ def run_genomes(genomes, config):
         apple.generate()
 
         run = True
-        while run:
-
-            if normal_speed:
-                pygame.time.delay(100)
+        while run: # ova petlja se odvija za svaku jedinku
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -233,8 +233,6 @@ def run_genomes(genomes, config):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
                         draw_win = not draw_win
-
-                    if event.key == pygame.K_o:
                         normal_speed = not normal_speed
             
             snake.move()
@@ -242,54 +240,49 @@ def run_genomes(genomes, config):
 
             if snake.check_collision(NUMBER_OF_SQUARES):
                 genome.fitness -= 6
-                if score>score_gen:
-                    score_gen = score
                 run = False
 
             if num_of_moves>NUMBER_OF_SQUARES_SQUARED:
                 genome.fitness -= 6
-                if score>score_gen:
-                    score_gen = score
                 run = False
 
             if snake.head.x == apple.x and snake.head.y == apple.y:
                 genome.fitness += 6
                 score+=1
-                if score>score_gen:
-                    score_gen = score
-                if score> max_score:
-                    max_score = score
-
                 snake.increase()
                 apple.generate()
                 num_of_moves = 0
 
             if score == NUMBER_OF_SQUARES_SQUARED-3:
                 genome.fitness+=10
-                if score>score_gen:
-                    score_gen = score
                 break
 
-            distance = snake.getSideDistance(NUMBER_OF_SQUARES)
+            if score>score_gen:
+                score_gen = score
+            if score> max_score:
+                max_score = score
 
+        
+            distance = snake.getSideDistance(NUMBER_OF_SQUARES) # prikuplja podatke
             angle = snake.getAngle(apple)
             dist_from_apple = snake.getDistanceFromApple(apple)
             
-            output = net.activate((snake.head.x,snake.head.y,moving_side_to_int(snake.head.moving_side),
+
+            output = net.activate((snake.head.x,snake.head.y,moving_side_to_int(snake.head.moving_side), # bira potez
                                    distance[0],distance[1],distance[2],distance[3],
                                    distance[4],distance[5],distance[6],distance[7],
                                    angle,dist_from_apple,apple.x,apple.y))
 
-            set_move(output,snake)
+            set_move(output,snake) # igra potez
 
-            if draw_win:
+            if draw_win: # proverava da li treba da crta
                 draw_window(snake,distance,apple,gen)
+            
+            if normal_speed: # proverava da li igra tece normalnom brzinom
+                pygame.time.delay(100)
     
-
 def run(config_path):
-    config  = neat.config.Config(neat.DefaultGenome,neat.DefaultReproduction,
-                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                                 config_path)
+    config  = neat.config.Config(neat.DefaultGenome,neat.DefaultReproduction,neat.DefaultSpeciesSet, neat.DefaultStagnation,config_path)
 
     population = neat.Population(config)
     population.run(run_genomes,100000000)
